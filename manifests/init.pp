@@ -7,14 +7,17 @@
 # Sample Usage:
 #
 # [Remember: No empty lines between comments and class definition]
-class cluster {
+class cluster (
+  $cluster_bind_interface,
+  $cluster_mcastaddr
+){
     $tmp_nic = "ipaddress_${cluster_bind_interface}"
     $bindnetaddr = inline_template("<%= scope.lookupvar(tmp_nic) %>")
 
     yumrepo {
         "clusterlabs":
-            descr => "High Availability/Clustering server technologies (epel-5)",
-            baseurl => "http://www.clusterlabs.org/rpm/epel-5",
+            descr => 'High Availability/Clustering server technologies (epel-$releasever)',
+            baseurl => 'http://www.clusterlabs.org/rpm/epel-$releasever',
             enabled => 1,
             gpgcheck => 0,
     }
