@@ -39,7 +39,7 @@ class cluster (
         mode    => 0400,
         owner   => "root",
         group   => "root",
-        source  => "puppet:///cluster/authkey",
+        source  => "puppet:///modules/cluster/authkey",
         require => Package["corosync"];
     }
 
@@ -62,27 +62,33 @@ class cluster (
     file { "/etc/corosync/crm.conf":
         ensure  => present,
         source  => [
-            "puppet:///cluster/${hostname}/crm.conf",
-            "puppet:///cluster/default/crm.conf",
+            "puppet:///modules/cluster/${hostname}/crm.conf",
+            "puppet:///modules/cluster/default/crm.conf",
             ],
         require => [ Package["pacemaker"], Service["corosync"] ];
     }
  
     file { "/usr/lib/ocf/resource.d/inuits/":
-        source => "puppet:///cluster/inuits/",
-        owner => "root",
-        group => "root",
-        mode  => 755,
-        ensure => directory,
+        ensure  => directory,
+        source  => "puppet:///modules/cluster/inuits/",
+        owner   => "root",
+        group   => "root",
+        mode    => 755,
+        require => Package["corosync.$hardwaremodel"],
         recurse => true,
     }
 
 
     exec { "load_crm_config":
-        command => "crm configure load update /etc/corosync/crm.conf",
+        command     => "crm configure load update /etc/corosync/crm.conf",
         refreshonly => true,
         subscribe   => File["/etc/corosync/crm.conf"],
-        require => File["/etc/corosync/crm.conf"] ;
+        require     => File["/etc/corosync/crm.conf", '/etc/corosync/authkey'],
+        path        => '/bin:/sbin:/usr/bin:/usr/sbin',
+        logoutput   => true,
+        environment => ['PAGER=/usr/bin/less', 'EDITOR=/bin/vi'],
+        tries       => 3,
+        try_sleep   => 8,
     }
 
 }
